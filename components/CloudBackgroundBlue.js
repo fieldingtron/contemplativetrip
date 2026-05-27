@@ -1,4 +1,4 @@
-import Image from "next/legacy/image"
+import Image from "next/image"
 import cloudPic from '../public/img/blue-clouds.jpeg'
 export default function CloudBackgroundBlue() {
   return (
@@ -6,9 +6,8 @@ export default function CloudBackgroundBlue() {
       src={cloudPic}
       className='overlayz overlayz-dark'
       alt='Blue Cloud Background'
-      layout='fill'
-      objectFit='center'
-      objectPosition='center'
+      fill
+      style={{ objectFit: 'cover', objectPosition: 'center' }}
       priority
     />
   )

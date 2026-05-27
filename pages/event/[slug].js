@@ -1,6 +1,6 @@
 import Layout from '../../components/Layout'
 import CloudBackgroundOrange from '../../components/CloudBackgroundOrange'
-import Image from 'next/legacy/image'
+import Image from 'next/image'
 import Link from 'next/link'
 import fs from 'fs'
 import path from 'path'
@@ -26,8 +26,7 @@ export default function Evt({ event }) {
                 src={event.featuredImage}
                 height={200}
                 width={200}
-                objectFit='cover'
-                objectPosition='center'
+                style={{ objectFit: 'cover', objectPosition: 'center' }}
                 quality={100}
                 className='rounded-circle img-fluid'
               />

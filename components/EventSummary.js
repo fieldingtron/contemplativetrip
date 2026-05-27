@@ -1,5 +1,5 @@
 import React from 'react'
-import Image from 'next/legacy/image'
+import Image from 'next/image'
 import Link from 'next/link'
 import profilePic from '../public/img/blue-mandala.png'
 
@@ -18,11 +18,9 @@ export default function EventSummary({ event }) {
             <Image
               alt={event.title}
               src={event.featuredImage}
-              // layout='fill'\
               height={200}
               width={200}
-              objectFit='cover'
-              objectPosition='center'
+              style={{ objectFit: 'cover', objectPosition: 'center' }}
               quality={100}
               className='rounded-circle img-fluid'
             />

@@ -13,7 +13,7 @@ export default function Header() {
       <nav>
         <nav className='navbar navbar-light navbar-expand-lg'>
           <div className='container'>
-            <Link href='/' className='navbar-brand pulse' legacyBehavior>
+            <Link href='/' className='navbar-brand pulse'>
               <h1> contemplative trip</h1>
             </Link>
 

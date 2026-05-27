@@ -1,7 +1,7 @@
 import Layout from '../../components/Layout'
 import moment from 'moment'
 import CloudBackgroundOrange from '../../components/CloudBackgroundOrange'
-import Image from 'next/legacy/image'
+import Image from 'next/image'
 import fs from 'fs'
 import path from 'path'
 import { marked } from 'marked'
@@ -25,11 +25,9 @@ export default function Art({ article }) {
             <Image
               alt={article.title}
               src={article.featuredImage}
-              // layout='fill'\
               height={400}
               width={800}
-              objectFit='cover'
-              objectPosition='center'
+              style={{ objectFit: 'cover', objectPosition: 'center' }}
               quality={100}
               className='img-thumbnail img-fluid'
             />

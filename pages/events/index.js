@@ -1,6 +1,6 @@
 import Layout from '../../components/Layout'
 import moment from 'moment'
-import Image from 'next/legacy/image'
+import Image from 'next/image'
 import sunsetPic from '../../public/img/sunset-clouds.jpg'
 import EventSummary from '../../components/EventSummary'
 import fs from 'fs'
@@ -26,7 +26,8 @@ export default function Events({ events }) {
           src={sunsetPic}
           className='overlayz'
           alt='Sunset Cloud Background'
-          layout='fill'
+          fill
+          style={{ objectFit: 'cover', objectPosition: 'center' }}
           priority
         />
 

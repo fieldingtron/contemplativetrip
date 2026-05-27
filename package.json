@@ -11,28 +11,29 @@
   },
   "dependencies": {
     "animate.css": "^4.1.1",
-    "axios": "^1.13.2",
-    "marked": "^12.0.2",
+    "axios": "^1.16.1",
     "bootstrap": "^5.3.8",
     "csvtojson": "^2.0.14",
     "formdata-node": "^6.0.3",
     "fs-request": "^0.2.1",
+    "marked": "^18.0.4",
     "moment": "^2.30.1",
-    "next": "^16.0.10",
-    "next-seo": "^7.0.1",
+    "next": "^16.2.6",
+    "next-seo": "^7.2.0",
     "papaparse": "^5.5.3",
-    "react": "^19.2.3",
-    "react-dom": "^19.2.3",
-    "react-hook-form": "^7.68.0",
+    "react": "^19.2.6",
+    "react-dom": "^19.2.6",
+    "react-hook-form": "^7.76.1",
     "react-papaparse": "^4.4.0",
-    "resend": "^6.6.0",
+    "resend": "^6.12.4",
     "tabletop": "^1.6.3",
-    "tinacms": "^3.1.1"
+    "tinacms": "^3.8.2"
   },
   "devDependencies": {
-    "@tinacms/cli": "^2.0.4",
-    "@types/node": "^25.0.3",
-    "@types/react": "19.2.7"
+    "@tinacms/cli": "^2.4.0",
+    "@types/node": "^25.9.1",
+    "@types/react": "^19.2.15",
+    "baseline-browser-mapping": "^2.10.32"
   },
   "overrides": {
     "jsonpath-plus": "^10.3.0",

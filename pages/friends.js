@@ -36,7 +36,7 @@ export default function friends({ links }) {
           <ul>
             {links.map((link) => (
               <li className='fs-4' key={link.Link}>
-                <Link href={link.Link} target='_blank' legacyBehavior>
+                <Link href={link.Link} target='_blank'>
                   {link.Title}
                 </Link>
                 - {link.Comments}
