@@ -1,12 +1,17 @@
 const crypto = require("node:crypto");
 const fs = require("node:fs");
 const readline = require("node:readline");
-// Add dotenv require
-const dotenv = require("dotenv");
-
-// Load environment variables from .env if it exists
+// Load environment variables from .env when dotenv is available.
+// In CI, dotenv may not be installed; that should not fail postinstall.
 if (fs.existsSync(".env")) {
-  dotenv.config({ path: ".env" });
+  try {
+    const dotenv = require("dotenv");
+    dotenv.config({ path: ".env" });
+  } catch (error) {
+    if (error && error.code !== "MODULE_NOT_FOUND") {
+      throw error;
+    }
+  }
 }
 
 const isNonInteractive =
