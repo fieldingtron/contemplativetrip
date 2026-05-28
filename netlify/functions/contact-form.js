@@ -110,6 +110,14 @@ const verifyTurnstileToken = async ({ token, clientIp }) => {
   };
 };
 
+const parseAllowedTurnstileHostnames = () => {
+  const rawHostnames = process.env.TURNSTILE_ALLOWED_HOSTNAMES || "";
+  return rawHostnames
+    .split(",")
+    .map((hostname) => hostname.trim().toLowerCase())
+    .filter(Boolean);
+};
+
 // Handler for Netlify serverless function
 exports.handler = async (event, context) => {
   // Debug log: Function invoked
@@ -244,6 +252,29 @@ exports.handler = async (event, context) => {
           field: "turnstile",
           message: "Captcha verification failed. Please try again.",
           debug: turnstileVerification.errorCodes,
+        }),
+      };
+    }
+
+    const allowedTurnstileHostnames = parseAllowedTurnstileHostnames();
+    const verifiedHostname = (turnstileVerification.hostname || "")
+      .toLowerCase()
+      .trim();
+
+    if (
+      allowedTurnstileHostnames.length > 0 &&
+      !allowedTurnstileHostnames.includes(verifiedHostname)
+    ) {
+      logDebugInfo("Turnstile hostname mismatch", {
+        verifiedHostname,
+        allowedTurnstileHostnames,
+      });
+      return {
+        statusCode: 400,
+        body: JSON.stringify({
+          success: false,
+          field: "turnstile",
+          message: "Captcha validation failed for this hostname.",
         }),
       };
     }

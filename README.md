@@ -86,6 +86,7 @@ Typical local variables used by this app:
 - RECIPIENT_EMAIL
 - NEXT_PUBLIC_TURNSTILE_SITE_KEY
 - TURNSTILE_SECRET_KEY
+- TURNSTILE_ALLOWED_HOSTNAMES
 - CSV_URL
 
 ## AI Assistant Workflow
