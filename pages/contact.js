@@ -4,18 +4,43 @@ import Layout from "../components/Layout";
 import axios from "axios";
 import EmailSent from "../components/EmailSent";
 import { useForm } from "react-hook-form";
+import Script from "next/script";
 
 export default function ContactPage() {
   const [response, setResponse] = React.useState(false);
   const [error, setError] = React.useState(null);
   const [fieldErrors, setFieldErrors] = React.useState({});
   const [isLoading, setIsLoading] = React.useState(false);
+  const [turnstileToken, setTurnstileToken] = React.useState("");
   // Store form render time to check submission speed (bots submit too quickly)
   const [formRenderTime, setFormRenderTime] = React.useState(0);
+  const turnstileSiteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY;
 
   // Set the initial render time when component mounts
   React.useEffect(() => {
     setFormRenderTime(Date.now());
+  }, []);
+
+  React.useEffect(() => {
+    window.onTurnstileSuccess = (token) => {
+      setTurnstileToken(token);
+      setError(null);
+    };
+
+    window.onTurnstileExpired = () => {
+      setTurnstileToken("");
+    };
+
+    window.onTurnstileError = () => {
+      setTurnstileToken("");
+      setError("Captcha verification failed. Please try again.");
+    };
+
+    return () => {
+      delete window.onTurnstileSuccess;
+      delete window.onTurnstileExpired;
+      delete window.onTurnstileError;
+    };
   }, []);
 
   const {
@@ -26,6 +51,18 @@ export default function ContactPage() {
   } = useForm();
 
   const submitForm = async (data) => {
+    if (!turnstileSiteKey) {
+      setError(
+        "Captcha is not configured yet. Please contact the site administrator."
+      );
+      return;
+    }
+
+    if (!turnstileToken) {
+      setError("Please complete the captcha challenge before sending.");
+      return;
+    }
+
     setIsLoading(true);
     setError(null);
     setFieldErrors({});
@@ -42,6 +79,7 @@ export default function ContactPage() {
         website: data["website"], // Honeypot field
         company: data["company"], // Secondary honeypot field
         formRenderTime, // For timing check
+        turnstileToken,
       });
 
       console.log("Response received:", response.data);
@@ -49,6 +87,10 @@ export default function ContactPage() {
       if (response.data.success) {
         setResponse(true);
         reset(); // Reset form fields on success
+        setTurnstileToken("");
+        if (window.turnstile) {
+          window.turnstile.reset();
+        }
       } else {
         // Check if we have a field-specific error
         if (response.data.field) {
@@ -161,6 +203,10 @@ export default function ContactPage() {
   return (
     <Layout title="Contact Page">
       <main>
+        <Script
+          src="https://challenges.cloudflare.com/turnstile/v0/api.js"
+          strategy="afterInteractive"
+        />
         <CloudBackgroundOrange />
         <section className="position-relative py-4 py-xl-5">
           <div className="container position-relative">
@@ -236,6 +282,21 @@ export default function ContactPage() {
                         {hasFieldError("your-message") && (
                           <div className="invalid-feedback">
                             {getFieldErrorMessage("your-message")}
+                          </div>
+                        )}
+                      </div>
+                      <div className="mb-3 d-flex justify-content-center">
+                        {turnstileSiteKey ? (
+                          <div
+                            className="cf-turnstile"
+                            data-sitekey={turnstileSiteKey}
+                            data-callback="onTurnstileSuccess"
+                            data-expired-callback="onTurnstileExpired"
+                            data-error-callback="onTurnstileError"
+                          />
+                        ) : (
+                          <div className="alert alert-warning w-100 mb-0" role="alert">
+                            Missing NEXT_PUBLIC_TURNSTILE_SITE_KEY.
                           </div>
                         )}
                       </div>

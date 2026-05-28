@@ -39,6 +39,6 @@
     "jsonpath-plus": "^10.3.0",
     "dompurify": "^3.3.0",
     "follow-redirects": "^1.15.11",
-    "axios": "^1.13.2"
+    "axios": "^1.16.1"
   }
 }

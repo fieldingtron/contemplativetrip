@@ -1,6 +1,6 @@
-# contemplative-nextjs
+# contemplativetrip
 
-Next.js + TinaCMS site for contemplative-trip content.
+Next.js + TinaCMS site for contemplativetrip content.
 
 ## Requirements
 
@@ -84,6 +84,8 @@ Typical local variables used by this app:
 - RESEND_API_KEY
 - FROM_EMAIL
 - RECIPIENT_EMAIL
+- NEXT_PUBLIC_TURNSTILE_SITE_KEY
+- TURNSTILE_SECRET_KEY
 - CSV_URL
 
 ## AI Assistant Workflow

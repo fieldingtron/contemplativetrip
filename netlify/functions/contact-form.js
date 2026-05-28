@@ -9,6 +9,8 @@ const RATE_LIMIT_MAX_ATTEMPTS = 5;
 const MAX_MESSAGE_LENGTH = 3000;
 const MAX_NAME_LENGTH = 100;
 const MAX_EMAIL_LENGTH = 254;
+const TURNSTILE_VERIFY_URL =
+  "https://challenges.cloudflare.com/turnstile/v0/siteverify";
 
 const spamPatterns = [
   /\bseo\b/i,
@@ -64,6 +66,50 @@ const shouldFlagAsSpam = ({ name, message }) => {
   return spamPatterns.some((pattern) => pattern.test(combinedText));
 };
 
+const verifyTurnstileToken = async ({ token, clientIp }) => {
+  const secret = process.env.TURNSTILE_SECRET_KEY;
+
+  if (!secret) {
+    return {
+      success: false,
+      configError: true,
+      error: "Missing TURNSTILE_SECRET_KEY environment variable",
+    };
+  }
+
+  const params = new URLSearchParams({
+    secret,
+    response: token,
+  });
+
+  if (clientIp && clientIp !== "unknown") {
+    params.append("remoteip", clientIp);
+  }
+
+  const verifyResponse = await fetch(TURNSTILE_VERIFY_URL, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/x-www-form-urlencoded",
+    },
+    body: params.toString(),
+  });
+
+  if (!verifyResponse.ok) {
+    return {
+      success: false,
+      error: `Turnstile verification request failed (${verifyResponse.status})`,
+    };
+  }
+
+  const result = await verifyResponse.json();
+  return {
+    success: !!result.success,
+    errorCodes: result["error-codes"] || [],
+    challengeTs: result.challenge_ts,
+    hostname: result.hostname,
+  };
+};
+
 // Handler for Netlify serverless function
 exports.handler = async (event, context) => {
   // Debug log: Function invoked
@@ -107,6 +153,7 @@ exports.handler = async (event, context) => {
       hasName: !!data.name,
       hasEmail: !!data.email,
       hasMessage: !!data.message,
+      hasTurnstileToken: !!data.turnstileToken,
       hasHoneypot: !!data.website,
       hasCompanyHoneypot: !!data.company,
       hasTimestamp: !!data.formRenderTime,
@@ -155,6 +202,48 @@ exports.handler = async (event, context) => {
         body: JSON.stringify({
           success: true,
           message: "Form submission received",
+        }),
+      };
+    }
+
+    if (!data.turnstileToken) {
+      logDebugInfo("Validation failed: missing Turnstile token");
+      return {
+        statusCode: 400,
+        body: JSON.stringify({
+          success: false,
+          field: "turnstile",
+          message: "Please complete the captcha challenge.",
+        }),
+      };
+    }
+
+    const turnstileVerification = await verifyTurnstileToken({
+      token: data.turnstileToken,
+      clientIp,
+    });
+
+    if (!turnstileVerification.success) {
+      logDebugInfo("Turnstile verification failed", turnstileVerification);
+
+      if (turnstileVerification.configError) {
+        return {
+          statusCode: 500,
+          body: JSON.stringify({
+            success: false,
+            message:
+              "Server configuration error: Missing Turnstile secret key.",
+          }),
+        };
+      }
+
+      return {
+        statusCode: 400,
+        body: JSON.stringify({
+          success: false,
+          field: "turnstile",
+          message: "Captcha verification failed. Please try again.",
+          debug: turnstileVerification.errorCodes,
         }),
       };
     }
