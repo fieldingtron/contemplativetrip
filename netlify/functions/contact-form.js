@@ -82,10 +82,6 @@ const verifyTurnstileToken = async ({ token, clientIp }) => {
     response: token,
   });
 
-  if (clientIp && clientIp !== "unknown") {
-    params.append("remoteip", clientIp);
-  }
-
   const verifyResponse = await fetch(TURNSTILE_VERIFY_URL, {
     method: "POST",
     headers: {
@@ -94,19 +90,30 @@ const verifyTurnstileToken = async ({ token, clientIp }) => {
     body: params.toString(),
   });
 
+  const responseText = await verifyResponse.text();
+
+  let responseBody = null;
+  try {
+    responseBody = JSON.parse(responseText);
+  } catch (error) {
+    responseBody = { raw: responseText };
+  }
+
   if (!verifyResponse.ok) {
     return {
       success: false,
+      status: verifyResponse.status,
       error: `Turnstile verification request failed (${verifyResponse.status})`,
+      body: responseBody,
     };
   }
 
-  const result = await verifyResponse.json();
   return {
-    success: !!result.success,
-    errorCodes: result["error-codes"] || [],
-    challengeTs: result.challenge_ts,
-    hostname: result.hostname,
+    success: !!responseBody.success,
+    errorCodes: responseBody["error-codes"] || [],
+    challengeTs: responseBody.challenge_ts,
+    hostname: responseBody.hostname,
+    body: responseBody,
   };
 };
 
@@ -116,6 +123,19 @@ const parseAllowedTurnstileHostnames = () => {
     .split(",")
     .map((hostname) => hostname.trim().toLowerCase())
     .filter(Boolean);
+};
+
+const isAllowedTurnstileHostname = (hostname, allowedHostnames) => {
+  const normalizedHostname = (hostname || "").toLowerCase().trim();
+
+  return allowedHostnames.some((allowedHostname) => {
+    if (allowedHostname.startsWith("*.")) {
+      const suffix = allowedHostname.slice(1);
+      return normalizedHostname.endsWith(suffix);
+    }
+
+    return normalizedHostname === allowedHostname;
+  });
 };
 
 // Handler for Netlify serverless function
@@ -263,7 +283,10 @@ exports.handler = async (event, context) => {
 
     if (
       allowedTurnstileHostnames.length > 0 &&
-      !allowedTurnstileHostnames.includes(verifiedHostname)
+      !isAllowedTurnstileHostname(
+        verifiedHostname,
+        allowedTurnstileHostnames
+      )
     ) {
       logDebugInfo("Turnstile hostname mismatch", {
         verifiedHostname,
