@@ -1,6 +1,25 @@
 const crypto = require("node:crypto");
 const fs = require("node:fs");
 const readline = require("node:readline");
+
+const isNonInteractive =
+  process.env.CI === "true" ||
+  process.env.VERCEL === "1" ||
+  !process.stdin.isTTY ||
+  !process.stdout.isTTY;
+
+const isProductionDeploy =
+  process.env.NODE_ENV?.toLowerCase() === "production" ||
+  process.env.VERCEL_ENV?.toLowerCase() === "production" ||
+  process.env.CONTEXT?.toLowerCase() === "production";
+
+if (isNonInteractive || isProductionDeploy) {
+  console.log(
+    "Skipping env encryption/decryption in CI/non-interactive or production environment."
+  );
+  process.exit(0);
+}
+
 // Load environment variables from .env when dotenv is available.
 // In CI, dotenv may not be installed; that should not fail postinstall.
 if (fs.existsSync(".env")) {
@@ -12,24 +31,6 @@ if (fs.existsSync(".env")) {
       throw error;
     }
   }
-}
-
-const isNonInteractive =
-  process.env.CI === "true" ||
-  process.env.VERCEL === "1" ||
-  !process.stdin.isTTY ||
-  !process.stdout.isTTY;
-
-const shouldSkipEncryption =
-  isNonInteractive ||
-  process.env.VERCEL_ENV?.toLowerCase() === "production" ||
-  process.env.CONTEXT?.toLowerCase() === "production";
-
-if (shouldSkipEncryption) {
-  console.log(
-    "Skipping env encryption/decryption in CI/Vercel/non-interactive or production environment."
-  );
-  process.exit(0);
 }
 
 // Continue with the rest of your script if not in production/non-interactive
